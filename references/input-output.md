@@ -66,7 +66,7 @@ state_snapshots 按已核验 Shot 的 entry／exit 保留实际 timestamp、stat
 
 Evidence 的 source_type 为 image / shot_spec / asset / story / persistent_state；source_ref 必须可解析到输入或可追溯历史材料，locator 是实际字段路径或画面区域，observation 写出该来源支持的事实。source_version 在 Spec 版本已知时必须填写；未知时可为 null，不能假造版本。不用编造测量框。
 
-source_version、source_ref、fact_id 等标识用于内部追溯和校验，不在默认成品中作为技术字段展示。成品证据改写为“SHOT_02 分镜图 · 右后景货架：各层清晰可见且为空”等便于核对的文字；不能丢失证据的实际含义。
+source_version、source_ref、fact_id 等标识用于内部追溯和校验，不在默认成品中作为技术字段展示。默认成品把内部证据归纳成准确的问题句和可执行修改方案，不逐条展示证据；归纳不能扩大、弱化或曲解证据。
 
 - image：source_ref 使用输入的不可变 image_id，替换图片换 ID。
 - shot_spec：统一使用 `SHOT_ID_SPEC` 配合 source_version；未知版本为 null，不能假造版本，不使用其他引用拼接格式。

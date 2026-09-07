@@ -157,9 +157,12 @@ class AnimaticContractTests(unittest.TestCase):
 class AnimaticMarkdownTests(unittest.TestCase):
     def test_human_report(self):
         r=module('render_review'); i,o=sample(); o['issues']=[issue()]
+        o['overall_result']=o['animatic_review']['overall_result']='REGENERATE'
+        for layer in L[:2]: o['animatic_review'][layer]=o['shot_reviews'][0][layer]='FAIL'
         text=r.render_report(o, context=i)
-        self.assertIn('智能分镜',text); self.assertIn('00:00.500',text)
-        for forbidden in ['test.mp4','![','persistent_visual_state','visual_samples','```json']:
+        for expected in ['智能分镜','REGENERATE','S1','00:00.500','严重程度：高','问题：','修改对象：','修改方案：']:
+            self.assertIn(expected,text)
+        for forbidden in ['test.mp4','![','persistent_visual_state','visual_samples','```json','审查层级','参考时刻','**证据：**','审查范围与限制','补充说明']:
             self.assertNotIn(forbidden,text)
     def test_video_only_omits_static(self):
         text=module('render_review').render_report(sample()[1],context=sample()[0])
@@ -167,5 +170,29 @@ class AnimaticMarkdownTests(unittest.TestCase):
     def test_untrusted_text_cannot_insert_video(self):
         r=module('render_review'); i,o=sample(); o['notes']=['![video](D:/secret.mp4)']
         text=r.render_report(o,context=i); self.assertNotIn('![video]',text)
+    def test_animatic_pass_is_one_glance(self):
+        r=module('render_review'); i,o=sample(); text=r.render_report(o,context=i)
+        self.assertIn('未发现需要修改的问题',text)
+        self.assertNotIn('| 审查层级 |',text)
+        self.assertLess(len(text),220)
+    def test_uncertainty_shows_required_next_step_only(self):
+        r=module('render_review'); i,o=sample()
+        o['coverage']['audio'].update(status='uncertain',method='unavailable',checked_ranges=[])
+        o['uncertainties']=[{'finding_id':'U1','shot_ids':[],'layers':[L[2]],'question':'是否含音乐？',
+                            'reason':'未实际听辨','potential_severity':'high','required_evidence':['听辨完整音轨'],'evidence':[]}]
+        o['animatic_review'][L[2]]='uncertain';o['overall_result']=o['animatic_review']['overall_result']='REVISE'
+        text=r.render_report(o,context=i)
+        for expected in ['待确认','是否含音乐','可能严重程度：高','听辨完整音轨']:
+            self.assertIn(expected,text)
+        self.assertNotIn('未实际听辨',text)
+    def test_combined_report_keeps_both_sections_concise(self):
+        from test_contract import sample as static_sample
+        r=module('render_review'); i,o=sample(); _,static=static_sample()
+        o['static_reviews']=[static]; o['overall_result']='REGENERATE'
+        text=r.render_report(o,context=i)
+        for expected in ['## 静态分镜问题','## 智能分镜问题','修改方案：']:
+            self.assertIn(expected,text)
+        for forbidden in ['**证据：**','审查层级','参考时刻']:
+            self.assertNotIn(forbidden,text)
 
 if __name__=='__main__': unittest.main()

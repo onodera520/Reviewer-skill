@@ -16,7 +16,7 @@ description: Review generated storyboard images and intelligent storyboard (Anim
 4. 提供前镜、后镜或历史状态时，必须读取 [连续性模块](references/continuity-review.md)。先确认连续关系和实体，再逐属性检查可见性，最后比较状态。无相邻材料时仍判断连续性是确实不适用还是缺证。
 5. 智能分镜先核验视频解码、实际 Shot 对应与覆盖范围，再按视觉锚点、动态执行、镜头序列三层审查；采样成功不等于审查完成。合并同源问题，区分已确认错误与 `uncertain`，确定错误归属及修复对象；按判定规则分别计算适用分项及 `overall_result`。
 6. 维护截至当前镜的 `persistent_visual_state`。离画不删事实，错误不覆盖正确状态，后镜新事实不提前写入。所有结论保留可核对证据。
-7. 读取 [报告交付](references/report-format.md)，保存并校验完整内部记录，生成最终 Markdown。核对文件确实写入后，对话仅给可点击的报告链接，不重复正文或展示内部数据。
+7. 读取 [报告交付](references/report-format.md)，保存并校验完整内部记录，生成精简 Markdown。静态报告只呈现结论及“问题、严重程度、修改方案”；智能分镜再加镜头号、时间范围和修改对象。核对文件确实写入后，对话仅给可点击的报告链接，不重复正文或展示内部数据。
 
 ## 边界
 

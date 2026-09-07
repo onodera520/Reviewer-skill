@@ -13,11 +13,13 @@ spec.loader.exec_module(render)
 
 
 class RenderTests(unittest.TestCase):
-    def test_reports_verdict_and_all_required_evidence(self):
+    def test_static_report_only_exposes_problem_severity_and_fix(self):
         _, report = sample()
         text = render.render_report(report)
-        for value in ['REGENERATE','单镜合规','跨镜连续性','满载','继续满载','空','右后景','恢复原满载状态','背景物体状态连续性']:
+        for value in ['REGENERATE','问题 1','严重程度：高','满载','空','恢复原满载状态','背景物体状态连续性']:
             self.assertIn(value, text)
+        for value in ['单镜合规','跨镜连续性','**证据：**','**判断依据：**','审查范围与限制','补充说明','右后景']:
+            self.assertNotIn(value, text)
 
     def test_does_not_dump_internal_json_or_state(self):
         _, report = sample()
@@ -29,7 +31,7 @@ class RenderTests(unittest.TestCase):
         _, report = sample()
         report.update(overall_result='PASS', current_shot_compliance='PASS',cross_shot_continuity='PASS',issues=[])
         text=render.render_report(report)
-        self.assertIn('未发现已确认的问题',text)
+        self.assertIn('未发现需要修改的问题',text)
         self.assertNotIn('待确认',text)
         self.assertNotIn('修复建议',text)
         self.assertLess(len(text),500)
@@ -42,7 +44,7 @@ class RenderTests(unittest.TestCase):
         text=render.render_report(report)
         self.assertIn('待确认',text)
         self.assertIn('清晰原图',text)
-        self.assertIn('背景无法辨认',text)
+        self.assertIn('可能严重程度：高',text)
         self.assertNotIn('问题 1',text)
 
     def test_external_error_does_not_name_current_for_repair(self):
@@ -50,7 +52,6 @@ class RenderTests(unittest.TestCase):
         report['issues'][0].update(attribution='previous',recommended_fix='修复前镜')
         report.update(overall_result='REVISE',cross_shot_continuity='uncertain')
         text=render.render_report(report)
-        self.assertIn('前镜',text)
         self.assertIn('修复前镜',text)
 
     def test_user_text_cannot_inject_markdown_images_or_code(self):
@@ -66,18 +67,18 @@ class RenderTests(unittest.TestCase):
         render.render_report(report)
         self.assertEqual(before,report)
 
-    def test_clip_and_global_image_number_are_readable_metadata(self):
+    def test_clip_metadata_is_omitted_from_minimal_report(self):
         _, report=sample()
         text=render.render_report(report,context={'clip_id':'CLIP_02','image_number':7})
-        self.assertIn('图 7',text)
+        self.assertNotIn('图 7',text)
         self.assertNotIn('clip_id',text)
         self.assertNotIn('image_number',text)
 
-    def test_schema_locator_is_translated_for_reader(self):
+    def test_evidence_locator_is_kept_internal(self):
         _, report=sample()
         report['issues'][0]['evidence'][2]['locator']='shot_spec'
         text=render.render_report(report)
-        self.assertIn('静态设计要求',text)
+        self.assertNotIn('静态设计要求',text)
         self.assertNotIn('shot_spec',text)
 
     def test_existing_file_requires_explicit_overwrite(self):

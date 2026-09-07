@@ -31,6 +31,10 @@ def plain(value):
     return re.sub(r'([\\`*_{}\[\]<>#|])', r'\\\1', text)
 
 
+def phrase(value):
+    return plain(value).rstrip('。；;，, ')
+
+
 def source_label(ev):
     ref = ev['source_ref']
     kind = ev['source_type']
@@ -70,41 +74,30 @@ def evidence_lines(evidence):
 def render_report(report, context=None):
     if report.get('review_mode') == 'animatic':
         return render_animatic(report, context)
-    lines = [f"# 分镜审查 · {plain(report['shot_id'])}", '',
-             f"**总体结论：{report['overall_result']} · {VERDICT[report['overall_result']]}**", '',
-             '| 审查项 | 结论 |', '| --- | --- |']
-    for area in AREAS:
-        lines.append(f"| {AREAS[area]} | {STATUS[report[area]]} |")
-    if context:
-        parts=[]
-        if context.get('clip_id'): parts.append(plain(context['clip_id']))
-        if context.get('image_number'): parts.append(f"图 {context['image_number']}")
-        if parts: lines += ['', '对应素材：'+' · '.join(parts)]
-    if not report['issues']:
-        lines += ['', '未发现已确认的问题。']
-    for index, issue in enumerate(report['issues'], 1):
-        lines += ['', f"## 问题 {index} · {TYPES[issue['error_type']]}", '',
-                  f"**程度：{SEVERITY[issue['severity']]}｜涉及：{ATTRIBUTION[issue['attribution']]}**", '']
-        if issue['previous_state'] is not None:
-            lines += [f"**既有状态：**{plain(issue['previous_state'])}", '']
-        lines += [f"**预期：**{plain(issue['expected_current_state'])}", '',
-                  f"**实际：**{plain(issue['actual_current_state'])}", '', '**证据：**', '']
-        lines += evidence_lines(issue['evidence'])
-        lines += ['', f"**判断依据：**{plain(issue['reason'])}", '',
-                  f"**修复建议：**{plain(issue['recommended_fix'])}"]
-    if report['uncertainties']:
-        lines += ['', '## 待确认', '']
-        for item in report['uncertainties']:
-            lines += [f"**{plain(item['question'])}**", '', plain(item['reason']), '']
-            if item['evidence']:
-                lines += evidence_lines(item['evidence']) + ['']
-            lines += ['需要补充：', ''] + [f"- {plain(x)}" for x in item['required_evidence']] + ['']
-    limitations = list(dict.fromkeys(report['coverage']['limitations']))
-    if limitations:
-        lines += ['', '## 审查范围与限制', ''] + [f'- {plain(x)}' for x in limitations]
-    if report['notes']:
-        lines += ['', '## 补充说明', ''] + [f'- {plain(x)}' for x in dict.fromkeys(report['notes'])]
+    lines = [f"# 静态分镜审查 · {plain(report['shot_id'])}", '',
+             f"**结论：{report['overall_result']}**"]
+    lines += static_issue_lines(report, heading='##')
     return '\n'.join(lines).rstrip() + '\n'
+
+
+def static_issue_lines(report, heading='##'):
+    lines=[]
+    if not report['issues'] and not report['uncertainties']:
+        return ['', '未发现需要修改的问题。']
+    for index, issue in enumerate(report['issues'], 1):
+        previous = (f"前镜已建立“{phrase(issue['previous_state'])}”；" if issue['previous_state'] is not None else '')
+        problem = f"{previous}当前为“{phrase(issue['actual_current_state'])}”，应为“{phrase(issue['expected_current_state'])}”。"
+        lines += ['', f"{heading} 问题 {index} · {TYPES[issue['error_type']]}", '',
+                  f"**严重程度：{SEVERITY[issue['severity']]}**", '',
+                  f"**问题：**{problem}", '',
+                  f"**修改方案：**{plain(issue['recommended_fix'])}"]
+    for index,item in enumerate(report['uncertainties'],1):
+        required='；'.join(plain(x) for x in item['required_evidence'])
+        lines += ['', f"{heading} 待确认 {index}", '',
+                  f"**可能严重程度：{SEVERITY[item['potential_severity']]}**", '',
+                  f"**问题：**{plain(item['question'])}", '',
+                  f"**下一步：**{required}"]
+    return lines
 
 
 def timecode(seconds):
@@ -127,48 +120,33 @@ def animatic_evidence(items, labels=None):
 
 
 def render_animatic(report, context=None):
-    layers={'visual_anchor_consistency':'视觉锚点一致性','dynamic_execution_consistency':'动态执行一致性','shot_sequence_consistency':'镜头序列一致性'}
     targets={'storyboard_image':'源分镜图及受影响镜头','video_shot':'指定视频镜头','editing':'剪辑','audio':'声音','unresolved':'待确认修复对象'}
-    verdicts={'PASS':'通过','REVISE':'需修订或补充依据','REGENERATE':'需重生成下列指定素材'}
-    source_labels={}
-    for shot in (context or {}).get('shots',[]):
-        if shot.get('image'):
-            source_labels[shot['image']['image_id']]='分镜图 '+str(shot.get('image_number',shot['shot_id']))+' · '+shot['shot_id']
-    lines=['# 分镜审查报告','',f"**总体结论：{report['overall_result']} · {verdicts[report['overall_result']]}**"]
-    if report.get('static_reviews'):
-        lines+=['','## 静态分镜审查','']
+    combined=bool(report.get('static_reviews'))
+    lines=[('# 分镜审查报告' if combined else '# 智能分镜审查'),'',f"**结论：{report['overall_result']}**"]
+    if combined:
+        lines+=['','## 静态分镜问题']
         for static in report['static_reviews']:
-            text=render_report(static)
-            # Nest the complete human report without exposing its internal contract.
-            for line in text.splitlines():
-                lines.append('##'+line if line.startswith('#') else line)
-    lines+=['','## 智能分镜审查','',f"**结论：{report['animatic_review']['overall_result']}**",'',
-            '| 审查层级 | 结论 |','| --- | --- |']
-    lines += [f"| {label} | {STATUS[report['animatic_review'][key]]} |" for key,label in layers.items()]
-    lines+=['','| 镜头 | 已核验时间 | 参考时刻 |','| --- | --- | --- |']
-    for r in report['shot_reviews']:
-        spans='、'.join(timecode(s['start'])+'–'+timecode(s['end']) for s in r['segments']) if r['mapping_status']=='confirmed' else '对应关系待核验'
-        anchor=timecode(r['anchor_time']) if r['anchor_time'] is not None else '待确认'
-        lines.append(f"| {plain(r['shot_id'])} | {spans} | {anchor} |")
-    if not report['issues']: lines+=['','未发现已确认的问题。']
+            lines += ['', f"### {plain(static['shot_id'])} · {static['overall_result']}"]
+            lines += static_issue_lines(static, heading='####')
+        lines+=['','## 智能分镜问题','',f"**结论：{report['animatic_review']['overall_result']}**"]
+    if not report['issues'] and not report['uncertainties']:
+        lines+=['','未发现需要修改的问题。']
     for n,i in enumerate(report['issues'],1):
         t=i['time_range']; span=timecode(t['start'])+'–'+timecode(t['end'])
-        lines+=['',f"### 问题 {n} · {'、'.join(layers[x] for x in dict.fromkeys(i['layers']))}",'',
-                f"**镜头：{plain('、'.join(i['shot_ids']) or '全段')}｜时间：{span}｜程度：{SEVERITY[i['severity']]}**",'',
-                f"**预期：**{plain(i['expected'])}",'',f"**实际：**{plain(i['actual'])}",'','**证据：**','']
-        lines+=animatic_evidence(i['evidence'],source_labels)
-        lines+=['',f"**判断依据：**{plain(i['reason'])}",'',f"**修复对象：**{targets[i['repair_target']]}",'',f"**修复建议：**{plain(i['recommended_fix'])}"]
+        shot=plain('、'.join(i['shot_ids']) or '全段')
+        problem=f"{phrase(i['actual'])}；应为“{phrase(i['expected'])}”。"
+        lines+=['',f"### 问题 {n} · {shot} · {span}",'',
+                f"**严重程度：{SEVERITY[i['severity']]}**",'',
+                f"**问题：**{problem}",'',f"**修改对象：**{targets[i['repair_target']]}",'',
+                f"**修改方案：**{plain(i['recommended_fix'])}"]
     if report['uncertainties']:
-        lines+=['','## 待确认','']
-        for u in report['uncertainties']:
-            lines += [f"**{plain(u['question'])}**",'',plain(u['reason']),'']
-            lines += animatic_evidence(u['evidence'],source_labels)
-            lines += ['需要补充：'+'；'.join(plain(x) for x in u['required_evidence']),'']
-    cov=report['coverage']; audio=cov['audio']
-    methods={'no_audio_track':'无音轨','decoded_silence':'已核验静音','listened':'已实际听辨','semantic_tool':'已完成声音内容识别','unavailable':'声音内容尚未核验'}
-    lines += ['','## 审查范围与限制','',f"已核验镜头：{plain('、'.join(cov['verified_shot_ids']) or '暂无')}。声音：{methods[audio['method']]}。"]
-    lines += ['',*[f'- {plain(x)}' for x in dict.fromkeys(cov['limitations'])]] if cov['limitations'] else []
-    if report['notes']: lines+=['','## 补充说明','']+[f'- {plain(x)}' for x in dict.fromkeys(report['notes'])]
+        lines+=['','## 待确认']
+        for n,u in enumerate(report['uncertainties'],1):
+            shots=plain('、'.join(u['shot_ids']) or '全段')
+            lines += ['',f"### 待确认 {n} · {shots}",'',
+                      f"**可能严重程度：{SEVERITY[u['potential_severity']]}**",'',
+                      f"**问题：**{plain(u['question'])}",'',
+                      f"**下一步：**{'；'.join(plain(x) for x in u['required_evidence'])}"]
     return '\n'.join(lines).rstrip()+'\n'
 
 

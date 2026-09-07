@@ -1,4 +1,4 @@
 interface:
   display_name: "Reviewer 分镜审查"
   short_description: "审查静态分镜及智能分镜视频的设计合规、视觉连续性、动态执行和镜头序列"
-  default_prompt: "使用 $reviewer 审查这些静态分镜图或智能分镜视频，对照脚本和参考图核验，生成有证据、方便阅读的干净 Markdown 审查文件。"
+  default_prompt: "使用 $reviewer 审查这些静态分镜图或智能分镜视频，对照脚本和参考图核验，生成只保留问题、严重程度和可执行修改方案的精简 Markdown 报告。"
