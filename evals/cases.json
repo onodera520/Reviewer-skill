@@ -1,0 +1,682 @@
+{
+  "schema_version": "1.0",
+  "fixture_provenance": "Original deterministic synthetic diagrams drawn with Pillow by build_fixtures.py. No real generated-storyboard validation has been completed by creating these files.",
+  "cases": [
+    {
+      "case_id": "C01",
+      "title": "满载货架整体变空",
+      "kind": "synthetic_visual",
+      "input": "fixtures/i132bfbedb168.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [
+          "background_state_continuity"
+        ],
+        "required_assertions": [
+          "SHELF_A 陈列区域清晰可见；保持满载基线，不写入空架状态"
+        ],
+        "forbidden_assertions": [],
+        "minimum_severity": "high"
+      },
+      "tags": [
+        "background_object_state",
+        "critical_gate"
+      ]
+    },
+    {
+      "case_id": "C02",
+      "title": "脸部特写令货架离画",
+      "kind": "synthetic_visual",
+      "input": "fixtures/i371e0b6ba48a.json",
+      "expected": {
+        "overall_result": "PASS",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "PASS",
+        "required_error_types": [],
+        "required_assertions": [
+          "货架 stocking_state 为 not_testable；继续保留满载状态"
+        ],
+        "forbidden_assertions": [
+          "货架消失",
+          "便当消失"
+        ]
+      },
+      "tags": [
+        "visibility",
+        "critical_gate"
+      ]
+    },
+    {
+      "case_id": "C03",
+      "title": "前景展示板遮住商品区域",
+      "kind": "synthetic_visual",
+      "input": "fixtures/i0dfab5acbae0.json",
+      "expected": {
+        "overall_result": "PASS",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "PASS",
+        "required_error_types": [],
+        "required_assertions": [
+          "货架陈列状态不可检验，保留原状态"
+        ],
+        "forbidden_assertions": [
+          "商品消失"
+        ]
+      },
+      "tags": [
+        "occlusion",
+        "critical_gate"
+      ]
+    },
+    {
+      "case_id": "C04",
+      "title": "关键陈列区域无法辨认",
+      "kind": "synthetic_visual",
+      "input": "fixtures/i34a44366294a.json",
+      "expected": {
+        "overall_result": "REVISE",
+        "current_shot_compliance": "uncertain",
+        "cross_shot_continuity": "uncertain",
+        "required_error_types": [],
+        "required_assertions": [
+          "报告货架结构及陈列状态辨识度不足，要求清晰图像"
+        ],
+        "forbidden_assertions": [
+          "确认空架",
+          "REGENERATE"
+        ]
+      },
+      "tags": [
+        "uncertain"
+      ]
+    },
+    {
+      "case_id": "C05",
+      "title": "商品包装细节随机变化",
+      "kind": "synthetic_visual",
+      "input": "fixtures/i12754373b28a.json",
+      "expected": {
+        "overall_result": "PASS",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "PASS",
+        "required_error_types": [],
+        "required_assertions": [],
+        "forbidden_assertions": [
+          "逐件商品数量、包装或纹理差异作为错误"
+        ]
+      },
+      "tags": [
+        "non_pixel"
+      ]
+    },
+    {
+      "case_id": "C06",
+      "title": "可见右手中关键道具消失",
+      "kind": "synthetic_visual",
+      "input": "fixtures/ie18b75a07d89.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [
+          "prop_continuity"
+        ],
+        "required_assertions": [
+          "角色自身右手为空且无遮挡；不得用观众右侧定义右手"
+        ],
+        "forbidden_assertions": [],
+        "minimum_severity": "high"
+      },
+      "tags": [
+        "prop"
+      ]
+    },
+    {
+      "case_id": "C07",
+      "title": "持物手在画外",
+      "kind": "synthetic_visual",
+      "input": "fixtures/iab2c8aca25fc.json",
+      "expected": {
+        "overall_result": "PASS",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "PASS",
+        "required_error_types": [],
+        "required_assertions": [
+          "继续保留两个便当袋的持物状态"
+        ],
+        "forbidden_assertions": [
+          "道具消失"
+        ]
+      },
+      "tags": [
+        "visibility",
+        "prop"
+      ]
+    },
+    {
+      "case_id": "C08",
+      "title": "明确放下便当",
+      "kind": "synthetic_visual",
+      "input": "fixtures/iacade632f70d.json",
+      "expected": {
+        "overall_result": "PASS",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "PASS",
+        "required_error_types": [],
+        "required_assertions": [
+          "更新道具为柜台中部，依据当前 Spec，不保留右手持物预期"
+        ],
+        "forbidden_assertions": []
+      },
+      "tags": [
+        "authorized_change"
+      ]
+    },
+    {
+      "case_id": "C09",
+      "title": "便当换手没有依据",
+      "kind": "synthetic_visual",
+      "input": "fixtures/i09947c6e5a08.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [
+          "prop_continuity"
+        ],
+        "required_assertions": [
+          "按角色自身左右手判定"
+        ],
+        "forbidden_assertions": [],
+        "minimum_severity": "high"
+      },
+      "tags": [
+        "prop"
+      ]
+    },
+    {
+      "case_id": "C10",
+      "title": "剧情数量由二变一",
+      "kind": "synthetic_visual",
+      "input": "fixtures/i908d72900e24.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [
+          "prop_continuity"
+        ],
+        "required_assertions": [
+          "精确核对两个剧情袋，不能只核对有无"
+        ],
+        "forbidden_assertions": [],
+        "minimum_severity": "high"
+      },
+      "tags": [
+        "prop"
+      ]
+    },
+    {
+      "case_id": "C11",
+      "title": "人物固定外观变化",
+      "kind": "synthetic_visual",
+      "input": "fixtures/i22b5894e02a7.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "FAIL",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [
+          "character_continuity"
+        ],
+        "required_assertions": [
+          "同一原因只报告一个问题并关联两个分项"
+        ],
+        "forbidden_assertions": [],
+        "minimum_severity": "high"
+      },
+      "tags": [
+        "character"
+      ]
+    },
+    {
+      "case_id": "C12",
+      "title": "没有解绑却自由站立",
+      "kind": "synthetic_visual",
+      "input": "fixtures/ifa70213c8aaf.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [
+          "character_state_continuity"
+        ],
+        "required_assertions": [
+          "束缚和坐姿是持续剧情事实"
+        ],
+        "forbidden_assertions": [],
+        "minimum_severity": "critical"
+      },
+      "tags": [
+        "character_state",
+        "critical_gate"
+      ]
+    },
+    {
+      "case_id": "C13",
+      "title": "反打与世界锚点一致",
+      "kind": "synthetic_visual",
+      "input": "fixtures/i6645ca87da63.json",
+      "expected": {
+        "overall_result": "PASS",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "PASS",
+        "required_error_types": [],
+        "required_assertions": [
+          "用窗、收银机、货架等世界锚点确认人物关系"
+        ],
+        "forbidden_assertions": [
+          "仅因屏幕左右互换判空间错误"
+        ]
+      },
+      "tags": [
+        "spatial",
+        "critical_gate"
+      ]
+    },
+    {
+      "case_id": "C14",
+      "title": "相同锚点下人物真正换位",
+      "kind": "synthetic_visual",
+      "input": "fixtures/ifafc221218d3.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [
+          "spatial_continuity"
+        ],
+        "required_assertions": [],
+        "forbidden_assertions": [],
+        "minimum_severity": "high"
+      },
+      "tags": [
+        "spatial"
+      ]
+    },
+    {
+      "case_id": "C15",
+      "title": "明确开门并继承结果",
+      "kind": "synthetic_visual",
+      "input": "fixtures/ic1f5e527f9d4.json",
+      "expected": {
+        "overall_result": "PASS",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "PASS",
+        "required_error_types": [],
+        "required_assertions": [
+          "当前明确开门预期替换先前关门事实"
+        ],
+        "forbidden_assertions": []
+      },
+      "tags": [
+        "background_object_state",
+        "authorized_change"
+      ]
+    },
+    {
+      "case_id": "C16",
+      "title": "夜间变成白天",
+      "kind": "synthetic_visual",
+      "input": "fixtures/ie1d53e4f418b.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [
+          "lighting_time_continuity"
+        ],
+        "required_assertions": [],
+        "forbidden_assertions": [],
+        "minimum_severity": "high"
+      },
+      "tags": [
+        "lighting_time"
+      ]
+    },
+    {
+      "case_id": "C17",
+      "title": "轻微曝光差异",
+      "kind": "synthetic_visual",
+      "input": "fixtures/iaa482ed186ee.json",
+      "expected": {
+        "overall_result": "PASS",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "PASS",
+        "required_error_types": [],
+        "required_assertions": [],
+        "forbidden_assertions": [
+          "轻微曝光提升导致重生成"
+        ]
+      },
+      "tags": [
+        "lighting_time",
+        "non_pixel"
+      ]
+    },
+    {
+      "case_id": "C18",
+      "title": "场景切换重建环境",
+      "kind": "synthetic_visual",
+      "input": "fixtures/id7cbb6e7dea7.json",
+      "expected": {
+        "overall_result": "PASS",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "PASS",
+        "required_error_types": [],
+        "required_assertions": [
+          "不携带旧店货架世界锚点与库存事实，建立 STORE_B 状态；只比较有依据的同名人物稳定身份"
+        ],
+        "forbidden_assertions": []
+      },
+      "tags": [
+        "new_scene"
+      ]
+    },
+    {
+      "case_id": "C19",
+      "title": "破碎窗户无依据恢复",
+      "kind": "synthetic_visual",
+      "input": "fixtures/ia539dc09c09c.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [
+          "scene_condition_continuity"
+        ],
+        "required_assertions": [],
+        "forbidden_assertions": [],
+        "minimum_severity": "high"
+      },
+      "tags": [
+        "scene_condition"
+      ]
+    },
+    {
+      "case_id": "C20",
+      "title": "三镜状态跨不可见镜头继承",
+      "kind": "stateful_visual",
+      "input": "fixtures/ic9c1dd0d52c9.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [
+          "background_state_continuity"
+        ],
+        "required_assertions": [
+          "引用 SHOT_01 历史证据；保留满载，不能把 SHOT_02 未见当作清空"
+        ],
+        "forbidden_assertions": [],
+        "minimum_severity": "high"
+      },
+      "tags": [
+        "persistent_state",
+        "critical_gate"
+      ]
+    },
+    {
+      "case_id": "C21",
+      "title": "错误前镜不能污染基线",
+      "kind": "stateful_visual",
+      "input": "fixtures/iabb23d0d25cd.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [
+          "background_state_continuity"
+        ],
+        "required_assertions": [
+          "即使相邻两图同为空架，也保留 SHOT_01 满载事实"
+        ],
+        "forbidden_assertions": [],
+        "minimum_severity": "high"
+      },
+      "tags": [
+        "persistent_state",
+        "critical_gate"
+      ]
+    },
+    {
+      "case_id": "C22",
+      "title": "当前恢复正确状态，归因前镜",
+      "kind": "synthetic_visual",
+      "input": "fixtures/i0ee73df9932d.json",
+      "expected": {
+        "overall_result": "REVISE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "uncertain",
+        "required_error_types": [],
+        "required_assertions": [
+          "问题归属 previous；要求修正前镜，不得要求当前复制空架"
+        ],
+        "forbidden_assertions": [
+          "当前镜 REGENERATE"
+        ]
+      },
+      "tags": [
+        "attribution"
+      ]
+    },
+    {
+      "case_id": "C23",
+      "title": "下一镜放下道具不提前套用",
+      "kind": "synthetic_visual",
+      "input": "fixtures/ie377a9bf7155.json",
+      "expected": {
+        "overall_result": "PASS",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "PASS",
+        "required_error_types": [],
+        "required_assertions": [
+          "截至 SHOT_02 仍为右手两个袋；不得把 SHOT_03 放袋事实写入当前状态"
+        ],
+        "forbidden_assertions": []
+      },
+      "tags": [
+        "next_shot",
+        "persistent_state"
+      ]
+    },
+    {
+      "case_id": "C24",
+      "title": "连续关系无法确认",
+      "kind": "synthetic_visual",
+      "input": "fixtures/i133d22d98524.json",
+      "expected": {
+        "overall_result": "REVISE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "uncertain",
+        "required_error_types": [],
+        "required_assertions": [
+          "需要场景或连续关系依据"
+        ],
+        "forbidden_assertions": [
+          "确认 continuity error"
+        ]
+      },
+      "tags": [
+        "uncertain"
+      ]
+    },
+    {
+      "case_id": "C25",
+      "title": "错误裁切是单镜问题",
+      "kind": "synthetic_visual",
+      "input": "fixtures/iae44923efec2.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "FAIL",
+        "cross_shot_continuity": "PASS",
+        "required_error_types": [],
+        "required_assertions": [
+          "记录静态构图或必现元素不合规"
+        ],
+        "forbidden_assertions": [
+          "世界中的货架或商品物理消失"
+        ],
+        "minimum_severity": "high"
+      },
+      "tags": [
+        "compliance",
+        "visibility"
+      ]
+    },
+    {
+      "case_id": "C26",
+      "title": "前镜图片缺失",
+      "kind": "context_variant",
+      "input": "fixtures/i31c65e049802.json",
+      "expected": {
+        "overall_result": "REVISE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "uncertain",
+        "required_error_types": [],
+        "required_assertions": [
+          "previous_image_inspected=false；不编造前镜实际商品数量"
+        ],
+        "forbidden_assertions": []
+      },
+      "tags": [
+        "missing_input"
+      ]
+    },
+    {
+      "case_id": "C27",
+      "title": "只提取静态 Spec 字段",
+      "kind": "context_variant",
+      "input": "fixtures/i2fbe87fe5a12.json",
+      "expected": {
+        "overall_result": "PASS",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "PASS",
+        "required_error_types": [],
+        "required_assertions": [],
+        "forbidden_assertions": [
+          "运镜审查",
+          "动作时序审查",
+          "要求静态图实现第4秒交接"
+        ]
+      },
+      "tags": [
+        "static_only"
+      ]
+    },
+    {
+      "case_id": "C28",
+      "title": "来源修订使旧状态需复核",
+      "kind": "stateful_visual",
+      "input": "fixtures/iebca3449f77b.json",
+      "expected": {
+        "overall_result": "REVISE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "uncertain",
+        "required_error_types": [],
+        "required_assertions": [
+          "隔离或复核过期满载依据，不以 v1 状态确认 v2 当前错误"
+        ],
+        "forbidden_assertions": []
+      },
+      "tags": [
+        "revision"
+      ]
+    },
+    {
+      "case_id": "C29",
+      "title": "伤口无依据恢复",
+      "kind": "synthetic_visual",
+      "input": "fixtures/iefe2ca6af330.json",
+      "expected": {
+        "overall_result": "REGENERATE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [],
+        "required_assertions": [],
+        "forbidden_assertions": [],
+        "minimum_severity": "high",
+        "acceptable_error_type_groups": [
+          [
+            "character_continuity",
+            "character_state_continuity"
+          ]
+        ]
+      },
+      "tags": [
+        "character_state"
+      ]
+    },
+    {
+      "case_id": "C30",
+      "title": "灯具突然关闭",
+      "kind": "synthetic_visual",
+      "input": "fixtures/i0de00bed0228.json",
+      "expected": {
+        "overall_result": "REVISE",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "FAIL",
+        "required_error_types": [
+          "background_state_continuity"
+        ],
+        "required_assertions": [],
+        "forbidden_assertions": [],
+        "minimum_severity": "medium"
+      },
+      "tags": [
+        "background_object_state"
+      ]
+    },
+    {
+      "case_id": "C31",
+      "title": "首镜建立状态",
+      "kind": "context_variant",
+      "input": "fixtures/iba9d0f8031fa.json",
+      "expected": {
+        "overall_result": "PASS",
+        "current_shot_compliance": "PASS",
+        "cross_shot_continuity": "not_applicable",
+        "required_error_types": [],
+        "required_assertions": [
+          "建立满载状态；不伪称完成前后两图比较"
+        ],
+        "forbidden_assertions": []
+      },
+      "tags": [
+        "first_shot"
+      ]
+    },
+    {
+      "case_id": "C32",
+      "title": "当前图片缺失",
+      "kind": "context_variant",
+      "input": "fixtures/ifb44388faf2a.json",
+      "expected": {
+        "overall_result": "REVISE",
+        "current_shot_compliance": "uncertain",
+        "cross_shot_continuity": "not_applicable",
+        "required_error_types": [],
+        "required_assertions": [
+          "current_image_inspected=false；列明缺失图像"
+        ],
+        "forbidden_assertions": [
+          "推测当前实际画面"
+        ]
+      },
+      "tags": [
+        "missing_input"
+      ]
+    }
+  ]
+}

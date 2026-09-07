@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reviewer.local/schemas/persistent-visual-state.schema.json",
+  "title": "Reviewer persistent visual state v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "scene_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "continuity_segment_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "through_shot_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "coverage_start_shot_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "facts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fact"
+      },
+      "minItems": 0
+    }
+  },
+  "required": [
+    "schema_version",
+    "scene_id",
+    "continuity_segment_id",
+    "through_shot_id",
+    "coverage_start_shot_id",
+    "facts"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "source_type": {
+          "enum": [
+            "image",
+            "shot_spec",
+            "asset",
+            "story",
+            "persistent_state"
+          ]
+        },
+        "source_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observation": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source_type",
+        "source_ref",
+        "locator",
+        "observation"
+      ],
+      "additionalProperties": false
+    },
+    "fact": {
+      "type": "object",
+      "properties": {
+        "fact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entity_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "enum": [
+            "environment",
+            "prop",
+            "character",
+            "character_state",
+            "spatial",
+            "background_object_state",
+            "lighting_time",
+            "scene_condition"
+          ]
+        },
+        "scope": {
+          "enum": [
+            "scene",
+            "entity"
+          ]
+        },
+        "property": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "world_anchor": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "importance": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "basis": {
+          "enum": [
+            "specified",
+            "observed",
+            "both"
+          ]
+        },
+        "established_at_shot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "last_confirmed_at_shot_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "https://reviewer.local/schemas/persistent-visual-state.schema.json#/$defs/evidence"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "fact_id",
+        "entity_id",
+        "category",
+        "scope",
+        "property",
+        "value",
+        "world_anchor",
+        "importance",
+        "basis",
+        "established_at_shot_id",
+        "last_confirmed_at_shot_id",
+        "evidence"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,459 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reviewer.local/schemas/review-output.schema.json",
+  "title": "Reviewer output v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "shot_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "overall_result": {
+      "enum": [
+        "PASS",
+        "REVISE",
+        "REGENERATE"
+      ]
+    },
+    "current_shot_compliance": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "uncertain"
+      ]
+    },
+    "cross_shot_continuity": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "uncertain",
+        "not_applicable"
+      ]
+    },
+    "coverage": {
+      "type": "object",
+      "properties": {
+        "current_image_inspected": {
+          "type": "boolean"
+        },
+        "previous_image_inspected": {
+          "type": "boolean"
+        },
+        "next_image_inspected": {
+          "type": "boolean"
+        },
+        "continuity_basis": {
+          "enum": [
+            "adjacent",
+            "persistent_state",
+            "both",
+            "none"
+          ]
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "current_image_inspected",
+        "previous_image_inspected",
+        "next_image_inspected",
+        "continuity_basis",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "issue_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "review_area": {
+            "enum": [
+              "current_shot_compliance",
+              "cross_shot_continuity"
+            ]
+          },
+          "related_review_areas": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "current_shot_compliance",
+                "cross_shot_continuity"
+              ]
+            },
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "error_type": {
+            "enum": [
+              "shot_spec_compliance",
+              "environment_continuity",
+              "prop_continuity",
+              "character_continuity",
+              "character_state_continuity",
+              "spatial_continuity",
+              "background_state_continuity",
+              "lighting_time_continuity",
+              "scene_condition_continuity"
+            ]
+          },
+          "severity": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "affected_shot_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "attribution": {
+            "enum": [
+              "current",
+              "previous",
+              "next",
+              "unresolved"
+            ]
+          },
+          "entity_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "fact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "previous_state": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expected_current_state": {
+            "type": "string",
+            "minLength": 1
+          },
+          "actual_current_state": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "https://reviewer.local/schemas/persistent-visual-state.schema.json#/$defs/evidence"
+            },
+            "minItems": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "recommended_fix": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "issue_id",
+          "review_area",
+          "error_type",
+          "severity",
+          "affected_shot_ids",
+          "attribution",
+          "entity_ids",
+          "previous_state",
+          "expected_current_state",
+          "actual_current_state",
+          "evidence",
+          "reason",
+          "recommended_fix"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "anyOf": [
+                {
+                  "properties": {
+                    "review_area": {
+                      "const": "cross_shot_continuity"
+                    }
+                  },
+                  "required": [
+                    "review_area"
+                  ]
+                },
+                {
+                  "properties": {
+                    "related_review_areas": {
+                      "contains": {
+                        "const": "cross_shot_continuity"
+                      }
+                    }
+                  },
+                  "required": [
+                    "related_review_areas"
+                  ]
+                }
+              ]
+            },
+            "then": {
+              "properties": {
+                "previous_state": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "fact_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1,
+                  "uniqueItems": true
+                },
+                "error_type": {
+                  "enum": [
+                    "environment_continuity",
+                    "prop_continuity",
+                    "character_continuity",
+                    "character_state_continuity",
+                    "spatial_continuity",
+                    "background_state_continuity",
+                    "lighting_time_continuity",
+                    "scene_condition_continuity"
+                  ]
+                }
+              },
+              "required": [
+                "fact_ids"
+              ]
+            }
+          }
+        ]
+      },
+      "minItems": 0
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "finding_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "review_area": {
+            "enum": [
+              "current_shot_compliance",
+              "cross_shot_continuity"
+            ]
+          },
+          "entity_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "https://reviewer.local/schemas/persistent-visual-state.schema.json#/$defs/evidence"
+            },
+            "minItems": 0
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "potential_severity": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "required_evidence": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "finding_id",
+          "review_area",
+          "entity_ids",
+          "question",
+          "evidence",
+          "reason",
+          "potential_severity",
+          "required_evidence"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "visibility_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fact_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "shot_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expected_visibility": {
+            "enum": [
+              "yes",
+              "no",
+              "uncertain"
+            ]
+          },
+          "observed_visibility": {
+            "enum": [
+              "visible",
+              "partial",
+              "not_visible",
+              "unassessable"
+            ]
+          },
+          "assessment": {
+            "enum": [
+              "consistent",
+              "contradiction",
+              "not_testable",
+              "uncertain"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "https://reviewer.local/schemas/persistent-visual-state.schema.json#/$defs/evidence"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "fact_id",
+          "shot_id",
+          "expected_visibility",
+          "observed_visibility",
+          "assessment",
+          "reason",
+          "evidence"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "persistent_visual_state": {
+      "$ref": "https://reviewer.local/schemas/persistent-visual-state.schema.json"
+    },
+    "state_invalidations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fact_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "https://reviewer.local/schemas/persistent-visual-state.schema.json#/$defs/evidence"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "fact_id",
+          "reason",
+          "evidence"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    }
+  },
+  "required": [
+    "schema_version",
+    "shot_id",
+    "overall_result",
+    "current_shot_compliance",
+    "cross_shot_continuity",
+    "coverage",
+    "issues",
+    "uncertainties",
+    "visibility_checks",
+    "notes",
+    "persistent_visual_state"
+  ],
+  "additionalProperties": false
+}

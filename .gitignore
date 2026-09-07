@@ -1,0 +1,20 @@
+# Python and local validation state
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.reviewer/
+
+# Local media/tool configuration. Each machine configures its own paths.
+scripts/media-tools.local.json
+
+# Generated review outputs, extracted frames, audio, and local visual test media.
+evals/results/
+evals/animatic/results/
+evals/animatic/fixtures/
+evals/animatic/behavior-truth.json
+evals/animatic/blind-inputs.json
+
+# Build and packaging artifacts
+*.zip
+*.log
+*.tmp

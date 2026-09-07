@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reviewer.local/schemas/review-input.schema.json",
+  "title": "Reviewer input v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "current": {
+      "$ref": "#/$defs/shot"
+    },
+    "previous": {
+      "$ref": "#/$defs/shot"
+    },
+    "next": {
+      "$ref": "#/$defs/shot"
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "entity_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "character",
+              "scene",
+              "prop"
+            ]
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "image_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "asset_id",
+          "entity_id",
+          "kind",
+          "version"
+        ],
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": [
+              "image_ref"
+            ]
+          },
+          {
+            "required": [
+              "description"
+            ]
+          }
+        ]
+      },
+      "minItems": 0
+    },
+    "story_context": {
+      "type": "string",
+      "minLength": 1
+    },
+    "persistent_visual_state": {
+      "$ref": "https://reviewer.local/schemas/persistent-visual-state.schema.json"
+    },
+    "continuity_context": {
+      "type": "object",
+      "properties": {
+        "previous_to_current": {
+          "enum": [
+            "continuous",
+            "new_scene",
+            "unknown"
+          ]
+        },
+        "current_to_next": {
+          "enum": [
+            "continuous",
+            "new_scene",
+            "unknown"
+          ]
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "previous_to_current",
+        "current_to_next",
+        "basis"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "current"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "shot": {
+      "type": "object",
+      "properties": {
+        "shot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scene_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "spec_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "clip_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "clip_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "image_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "shot_spec": {
+          "anyOf": [
+            {
+              "type": "object",
+              "minProperties": 1
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "image_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "image_id",
+                "ref"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "image_prompt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "shot_id",
+        "scene_id",
+        "spec_version",
+        "shot_spec"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "current": {
+    "shot_id": "SHOT_03",
+    "scene_id": "STORE",
+    "spec_version": "v1",
+    "shot_spec": "便利店内部，同一连续夜间场景。静态全景，柜台、左墙入口及窗、柜台另一端的三层金属货架可见。林默为短黑发深蓝外套人物，苏晴为棕色短发红褐上衣人物；林默在靠窗端，苏晴在靠货架端。当前静态画面是两人停留交谈。",
+    "image": {
+      "image_id": "SHOT_03_IMAGE",
+      "ref": "v2e1cfa82b035.png"
+    }
+  },
+  "previous": {
+    "shot_id": "SHOT_02",
+    "scene_id": "STORE",
+    "spec_version": "v1",
+    "shot_spec": "便利店内部，同一连续夜间场景。静态全景，柜台、左墙入口及窗、柜台另一端的三层金属货架可见。林默为短黑发深蓝外套人物，苏晴为棕色短发红褐上衣人物；林默在靠窗端，苏晴在靠货架端。当前静态画面是两人停留交谈。",
+    "image": {
+      "image_id": "SHOT_02_IMAGE",
+      "ref": "v2e1cfa82b035.png"
+    }
+  },
+  "continuity_context": {
+    "previous_to_current": "continuous",
+    "current_to_next": "unknown",
+    "basis": "前后两镜处于同一场景、同一段连续交谈；未描述中断、时间跳跃或未列出的状态变化。"
+  },
+  "persistent_visual_state": {
+    "schema_version": "1.0",
+    "scene_id": "STORE",
+    "continuity_segment_id": "STORE_CONT_01",
+    "through_shot_id": "SHOT_02",
+    "coverage_start_shot_id": "SHOT_01",
+    "facts": [
+      {
+        "fact_id": "F_SHELF_STOCK",
+        "entity_id": "SHELF_A",
+        "category": "background_object_state",
+        "scope": "scene",
+        "property": "stocking_state",
+        "value": "摆满饮料和零食",
+        "world_anchor": "柜台收银机端后方、与入口窗墙相对的墙边",
+        "importance": "high",
+        "basis": "observed",
+        "established_at_shot_id": "SHOT_01",
+        "last_confirmed_at_shot_id": "SHOT_01",
+        "evidence": [
+          {
+            "source_type": "image",
+            "source_ref": "SHOT_01_IMAGE",
+            "locator": "三层金属货架各层陈列区域",
+            "observation": "各层有明显商品陈列；已核验图像版本 v1。"
+          }
+        ]
+      }
+    ]
+  },
+  "story_context": "SHOT_02 中货架错误地变空，已确认属于生成错误；没有剧情清空货架的动作。"
+}

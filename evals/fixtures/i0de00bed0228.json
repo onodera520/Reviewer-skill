@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "current": {
+    "shot_id": "SHOT_02",
+    "scene_id": "STORE",
+    "spec_version": "v1",
+    "shot_spec": "便利店内部，同一连续夜间场景。静态全景，柜台、左墙入口及窗、柜台另一端的三层金属货架可见。林默为短黑发深蓝外套人物，苏晴为棕色短发红褐上衣人物；林默在靠窗端，苏晴在靠货架端。当前静态画面是两人停留交谈。",
+    "image": {
+      "image_id": "SHOT_02_IMAGE",
+      "ref": "v3ab18ebacda8.png"
+    }
+  },
+  "previous": {
+    "shot_id": "SHOT_01",
+    "scene_id": "STORE",
+    "spec_version": "v1",
+    "shot_spec": "便利店内部，同一连续夜间场景。静态全景，柜台、左墙入口及窗、柜台另一端的三层金属货架可见。林默为短黑发深蓝外套人物，苏晴为棕色短发红褐上衣人物；林默在靠窗端，苏晴在靠货架端。当前静态画面是两人停留交谈。",
+    "image": {
+      "image_id": "SHOT_01_IMAGE",
+      "ref": "vcae662172fd4.png"
+    }
+  },
+  "continuity_context": {
+    "previous_to_current": "continuous",
+    "current_to_next": "unknown",
+    "basis": "前后两镜处于同一场景、同一段连续交谈；未描述中断、时间跳跃或未列出的状态变化。"
+  }
+}

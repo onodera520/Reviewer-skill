@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "instructions": "读取本清单中的输入 JSON，实际打开每张引用的 PNG，仅根据输入审查当前静态分镜。不要读取 cases.json、build_fixtures.py 或预期答案。图片 ref 相对各输入 JSON 所在目录解析。输出每案当前图合规、跨镜连续性、最终 PASS/REVISE/REGENERATE、依据、可见性说明及截至当前镜的持久状态。",
+  "inputs": [
+    "i132bfbedb168.json",
+    "i371e0b6ba48a.json",
+    "i0dfab5acbae0.json",
+    "ifa70213c8aaf.json",
+    "i6645ca87da63.json",
+    "ic9c1dd0d52c9.json"
+  ]
+}
