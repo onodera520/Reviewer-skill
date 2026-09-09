@@ -87,7 +87,8 @@ def static_issue_lines(report, heading='##'):
     for index, issue in enumerate(report['issues'], 1):
         previous = (f"前镜已建立“{phrase(issue['previous_state'])}”；" if issue['previous_state'] is not None else '')
         problem = f"{previous}当前为“{phrase(issue['actual_current_state'])}”，应为“{phrase(issue['expected_current_state'])}”。"
-        lines += ['', f"{heading} 问题 {index} · {TYPES[issue['error_type']]}", '',
+        label = '提示词符合性' if report.get('review_profile') == 'story_preview' and issue['error_type'] == 'shot_spec_compliance' else TYPES[issue['error_type']]
+        lines += ['', f"{heading} 问题 {index} · {label}", '',
                   f"**严重程度：{SEVERITY[issue['severity']]}**", '',
                   f"**问题：**{problem}", '',
                   f"**修改方案：**{plain(issue['recommended_fix'])}"]

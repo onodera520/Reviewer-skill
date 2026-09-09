@@ -70,7 +70,7 @@ def probe_video(path, ffprobe):
     return data, frames, origin, end
 
 
-def sample_indices(frames, boundaries, samples=5, anchor_times=(), dense_ranges=()):
+def sample_indices(frames, boundaries, samples=3, anchor_times=(), dense_ranges=()):
     chosen = set()
     count = len(frames)
     for start, stop in zip(boundaries, boundaries[1:]):
@@ -93,7 +93,7 @@ def sample_indices(frames, boundaries, samples=5, anchor_times=(), dense_ranges=
 
 
 def prepare(video, output, *, ffmpeg=None, ffprobe=None, threshold=0.12,
-            samples=5, provided_segments=(), anchor_times=(), dense_ranges=()):
+            samples=3, provided_segments=(), anchor_times=(), dense_ranges=()):
     ffmpeg, ffprobe = executable('ffmpeg', ffmpeg), executable('ffprobe', ffprobe)
     video, output = Path(video).resolve(), Path(output).resolve()
     if not video.is_file():
@@ -109,7 +109,7 @@ def prepare(video, output, *, ffmpeg=None, ffprobe=None, threshold=0.12,
     if any(not 0 <= t <= duration for t in anchor_times):
         raise MediaError('Anchor time is outside the decoded timeline.')
     output.mkdir(parents=True)
-    limitations = ['Extraction is not inspection. Shot matching, action, subtitles and transitions require visual review.',
+    limitations = ['Extraction is not inspection. Shot matching, story intent and transitions require visual review.',
                    'Scene-change scores are candidates, not confirmed hard cuts; slow transitions and similar shots can evade detection.']
     # Full decode; showinfo PTS retain input origin through -copyts.
     scan = run([ffmpeg, '-hide_banner', '-nostdin', '-v', 'info', '-xerror', '-copyts',
@@ -142,26 +142,8 @@ def prepare(video, output, *, ffmpeg=None, ffprobe=None, threshold=0.12,
             file.rename(target)
             exported.append({**frames[index], 'ref': str(target), 'inspected': False})
     streams = json.loads(run([ffprobe, '-v', 'error', '-show_streams', '-of', 'json', video]).stdout)['streams']
-    audio = []
-    for stream in streams:
-        if stream['codec_type'] != 'audio':
-            continue
-        index = stream['index']
-        wav = output / f'audio-stream-{index}.wav'
-        decoded = run([ffmpeg, '-hide_banner', '-nostdin', '-v', 'info', '-xerror', '-i', video,
-                       '-map', f'0:{index}', '-vn', '-af', 'astats=reset=0', '-c:a', 'pcm_f32le', wav])
-        peaks = re.findall(r'Peak level dB:\s*(-?inf|[-\d.]+)', decoded.stderr)
-        silent = bool(peaks) and all(x == '-inf' for x in peaks)
-        audio.append({'stream_index': index, 'ref': str(wav), 'decoded': True,
-                      'source_start_seconds': float(stream.get('start_time', origin)),
-                      'video_timeline_offset_seconds': float(stream.get('start_time', origin)) - origin,
-                      'time_mapping': 'WAV time plus video_timeline_offset_seconds; inspect original timing if discontinuities exist',
-                      'signal_status': 'digital_silence' if silent else 'non_silent_or_unknown',
-                      'semantic_status': 'PASS' if silent else 'uncertain',
-                      'method': 'full_decode_astats_exact_zero', 'content_inspected': False})
-    if any(a['semantic_status'] == 'uncertain' for a in audio):
-        limitations.append('Non-silent audio has not been listened to or semantically classified; dialogue/music/SFX cannot be inferred from level.')
-    manifest = {'schema_version': '1.0', 'review_mode': 'animatic', 'preparation_only': True,
+    # Audio stream metadata is not a content check. Never extract/decode audio or run OCR.
+    manifest = {'schema_version': '1.0', 'review_mode': 'animatic', 'review_profile':'story_preview', 'preparation_only': True,
         'video_ref': str(video), 'duration_seconds': duration, 'timestamp_origin_seconds': origin,
         'timestamp_convention': 'time_seconds = decoded PTS minus first video PTS; source PTS retained',
         'streams': streams, 'frames': frames, 'extracted_frames': exported,
@@ -171,8 +153,7 @@ def prepare(video, output, *, ffmpeg=None, ffprobe=None, threshold=0.12,
         'candidate_segments': [{'start_seconds': frames[a]['time_seconds'],
              'end_seconds': frames[b]['time_seconds'] if b < len(frames) else duration,
              'shot_id': None, 'mapping_status': 'uncertain'} for a, b in zip(boundaries, boundaries[1:])],
-        'audio': {'streams': audio, 'status': 'no_audio_track' if not audio else 'decoded',
-                  'content_status': 'PASS' if all(a['semantic_status'] == 'PASS' for a in audio) else 'uncertain'},
+        'audio': {'status':'not_applicable','method':'skipped_by_scope','checked_ranges':[],'evidence':[]},
         'coverage': {'decoded_ranges': [{'start_seconds': 0, 'end_seconds': duration}],
                      'decode_completed': True, 'reviewed_shot_ids': [], 'visual_inspection_completed': False,
                      'limitations': limitations}}
@@ -187,7 +168,7 @@ def main():
     parser.add_argument('--ffmpeg')
     parser.add_argument('--ffprobe')
     parser.add_argument('--threshold', type=float, default=0.12)
-    parser.add_argument('--samples', type=int, default=5)
+    parser.add_argument('--samples', type=int, default=3)
     parser.add_argument('--segments', help='JSON list: shot_id, start_seconds, end_seconds; unverified hints')
     parser.add_argument('--anchor-time', type=float, action='append', default=[])
     parser.add_argument('--dense-ranges', help='JSON list of start_seconds/end_seconds; exports every decoded frame within ranges')

@@ -71,7 +71,9 @@
             "shot_spec",
             "asset",
             "story",
-            "persistent_state"
+            "persistent_state",
+            "image_prompt",
+            "preview_prompt"
           ]
         },
         "source_ref": {

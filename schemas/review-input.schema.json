@@ -113,6 +113,12 @@
         "basis"
       ],
       "additionalProperties": false
+    },
+    "review_profile": {
+      "enum": [
+        "story_preview",
+        "spec_fidelity"
+      ]
     }
   },
   "required": [
@@ -219,6 +225,13 @@
               "type": "null"
             }
           ]
+        },
+        "image_prompt_version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
         }
       },
       "required": [

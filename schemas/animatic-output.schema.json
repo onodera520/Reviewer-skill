@@ -404,7 +404,8 @@
               "enum": [
                 "PASS",
                 "FAIL",
-                "uncertain"
+                "uncertain",
+                "not_applicable"
               ]
             },
             "method": {
@@ -413,7 +414,8 @@
                 "decoded_silence",
                 "listened",
                 "semantic_tool",
-                "unavailable"
+                "unavailable",
+                "skipped_by_scope"
               ]
             },
             "checked_ranges": {
@@ -629,6 +631,12 @@
         "$ref": "https://reviewer.local/schemas/review-output.schema.json"
       },
       "minItems": 0
+    },
+    "review_profile": {
+      "enum": [
+        "story_preview",
+        "spec_fidelity"
+      ]
     }
   },
   "required": [
@@ -658,7 +666,9 @@
             "story",
             "persistent_state",
             "video_frame",
-            "audio_segment"
+            "audio_segment",
+            "image_prompt",
+            "preview_prompt"
           ]
         },
         "source_ref": {

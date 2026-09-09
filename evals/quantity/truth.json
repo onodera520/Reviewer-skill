@@ -1,0 +1,35 @@
+{
+  "provenance": "Original controlled diagrams; not user failure images.",
+  "cases": [
+    {
+      "case_id": "q01",
+      "physical_count": 2,
+      "expected": "PASS",
+      "reason": "Two bodies, four rim/base lines; do not count lines."
+    },
+    {
+      "case_id": "q02",
+      "physical_count": 2,
+      "expected": "PASS",
+      "reason": "Compartments, bands, labels and highlights belong to the same two bodies."
+    },
+    {
+      "case_id": "q03",
+      "physical_count": 2,
+      "expected": "uncertain / REVISE",
+      "reason": "Exact count cannot be established through opaque foreground; hidden truth is not observation."
+    },
+    {
+      "case_id": "q04",
+      "physical_count": 4,
+      "expected": "FAIL / high / REGENERATE",
+      "reason": "Four separate complete bodies contradict plot-critical two-box requirement."
+    },
+    {
+      "case_id": "q05",
+      "physical_count": 2,
+      "expected": "uncertain / REVISE",
+      "reason": "Repeated occluded source contributes no new count information."
+    }
+  ]
+}

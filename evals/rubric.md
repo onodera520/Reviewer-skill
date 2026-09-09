@@ -1,3 +1,7 @@
+# 新口径回归说明
+
+新审查执行 [预览规则](../references/story-preview.md)。现有未声明 review_profile 的 fixture 与历史报告保持旧语义，以下旧评测记录不代表新默认声音或 Spec 审查要求。新增口径见 [对照测试](story-preview-rubric.md)；新评测跳过音频、水印和字幕专项，不能沿用旧答案的严格动作阶段或声音判定。
+
 # Reviewer 静态评测
 
 智能分镜扩展见 [智能分镜评测](animatic/rubric.md)。原静态要求继续适用。

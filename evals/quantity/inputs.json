@@ -1,0 +1,29 @@
+[
+  {
+    "case_id": "q01",
+    "image_ref": "media/q01.png",
+    "image_prompt": "柜台上放着两盒独立包装的便当，分别交给两位等候者，每人一盒；数量是交接的关键事实。"
+  },
+  {
+    "case_id": "q02",
+    "image_ref": "media/q02.png",
+    "image_prompt": "柜台上放着两盒独立包装的便当，分别交给两位等候者，每人一盒；数量是交接的关键事实。"
+  },
+  {
+    "case_id": "q03",
+    "image_ref": "media/q03.png",
+    "image_prompt": "柜台上放着两盒独立包装的便当，分别交给两位等候者，每人一盒；数量是交接的关键事实。"
+  },
+  {
+    "case_id": "q04",
+    "image_ref": "media/q04.png",
+    "image_prompt": "柜台上放着两盒独立包装的便当，分别交给两位等候者，每人一盒；数量是交接的关键事实。"
+  },
+  {
+    "case_id": "q05",
+    "video_ref": "media/q05.mkv",
+    "image_ref": "media/q03.png",
+    "image_prompt": "柜台上放着两盒独立包装的便当，分别交给两位等候者，每人一盒；数量是交接的关键事实。",
+    "preview_instruction": "便当镜头保持静止，供确认交接前的道具状态。"
+  }
+]

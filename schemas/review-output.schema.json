@@ -440,6 +440,12 @@
         "additionalProperties": false
       },
       "minItems": 0
+    },
+    "review_profile": {
+      "enum": [
+        "story_preview",
+        "spec_fidelity"
+      ]
     }
   },
   "required": [

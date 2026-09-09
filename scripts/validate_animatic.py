@@ -49,6 +49,9 @@ def verdict(issues,uncertainties):
 def pair_errors(inp,out,schema,static_pair):
     errors=input_errors(inp,schema)+schema(out,'animatic-output.schema.json')
     if errors: return errors
+    preview=inp.get('review_profile','spec_fidelity')=='story_preview'
+    if inp.get('review_profile','spec_fidelity')!=out.get('review_profile','spec_fidelity'):
+        errors.append('review_profile mismatch; historical reports cannot be reinterpreted')
     shots={s['shot_id']:s for s in inp['shots']}; ids=list(shots)
     seq=inp.get('expected_sequence',ids); index={sid:n for n,sid in enumerate(seq)}
     cov=out['coverage']; duration=cov['duration_seconds']; video=inp['video']
@@ -58,6 +61,10 @@ def pair_errors(inp,out,schema,static_pair):
     if set(sr)!=set(ids) or len(sr)!=len(out['shot_reviews']): errors.append('shot_reviews must cover each expected shot once')
     known={video['video_id']:('video',video['version'])}
     known.update({sid+'_SPEC':('shot_spec',s['spec_version']) for sid,s in shots.items()})
+    if preview:
+        known.update({sid+'_IMAGE_PROMPT':('image_prompt',s.get('image_prompt_version')) for sid,s in shots.items() if (s.get('image_prompt') or '').strip()})
+        known.update({sid+'_PREVIEW_INSTRUCTION':('preview_prompt',None) for sid,s in shots.items() if (s.get('preview_instruction') or '').strip()})
+        if inp.get('preview_prompt'): known['preview_prompt']=('preview_prompt',None)
     known.update({s['image']['image_id']:('image',None) for s in shots.values() if s.get('image')})
     known.update({a['asset_id']:('asset',a.get('version')) for a in inp.get('assets',[])})
     if inp.get('story_context'): known['story_context']=('story',None)
@@ -104,7 +111,11 @@ def pair_errors(inp,out,schema,static_pair):
         media=[e for e in i['evidence'] if e['source_type'] in ('video_frame','audio_segment')]
         if i['repair_target']!='storyboard_image' and not media: errors.append('video issue requires actual media evidence')
         if i['repair_target']=='storyboard_image' and not any(e['source_type']=='image' for e in i['evidence']): errors.append('source image error requires image evidence')
-        if i['repair_target']=='storyboard_image' and not any(e['source_type']=='shot_spec' for e in i['evidence']): errors.append('source image error requires Spec evidence')
+        if i['repair_target']=='storyboard_image':
+            kind='image_prompt' if preview else 'shot_spec'
+            if not any(e['source_type']==kind for e in i['evidence']): errors.append('source image error requires corresponding review basis evidence')
+            if preview and not any(e['source_type']=='image_prompt' and e['source_ref'] in [sid+'_IMAGE_PROMPT' for sid in i['shot_ids']] for e in i['evidence']): errors.append('source image error refers to another shot prompt')
+        if preview and i['repair_target']=='audio': errors.append('audio is excluded from story_preview review')
         if i['repair_action']=='regenerate' and (i['repair_target'] not in ('storyboard_image','video_shot') or LEVEL[i['severity']]<2): errors.append('regeneration requires confirmed high-impact image repair')
         if 'dynamic_execution_consistency' in i['layers'] and len({e['timestamp'] for e in media if e['source_type']=='video_frame'})<2:
             errors.append('dynamic conclusion requires at least two inspected timestamps')
@@ -126,7 +137,10 @@ def pair_errors(inp,out,schema,static_pair):
         if r[LAYERS[0]]=='PASS':
             img=shots[sid].get('image')
             if not img or img['image_id'] not in cov['inspected_image_ids'] or r['anchor_time'] is None: errors.append('visual anchor PASS requires inspected source and matched reference moment')
-        if shots[sid]['shot_spec'] is None and not has_unc(LAYERS[1],sid): errors.append('missing Spec requires uncertainty')
+        basis_missing = not any([shots[sid].get('shot_spec'),shots[sid].get('preview_instruction'),inp.get('preview_prompt')]) if preview else shots[sid]['shot_spec'] is None
+        if basis_missing and not has_unc(LAYERS[1],sid): errors.append('missing action review basis requires uncertainty')
+        if preview and r['source_image_compliance']!='not_applicable' and not (shots[sid].get('image_prompt') or '').strip():
+            if r['source_image_compliance']!='uncertain' or not has_unc(LAYERS[0],sid): errors.append('source image compliance needs prompt or explicit uncertainty')
         for layer in LAYERS:
             expected='FAIL' if any(sid in i['shot_ids'] and layer in i['layers'] for i in issues) else ('uncertain' if any(sid in u['shot_ids'] and layer in u['layers'] for u in uncertain) else 'PASS')
             if r[layer]!=expected: errors.append(f'inconsistent shot layer: {sid}/{layer}')
@@ -140,6 +154,11 @@ def pair_errors(inp,out,schema,static_pair):
             errors.append('overlapping shot mappings require transition/mapping finding')
     if (not cov['mapping_complete'] or not covered(cov['decoded_ranges'],duration)) and not has_unc(LAYERS[2]): errors.append('incomplete mapping or decode coverage requires uncertainty')
     audio=cov['audio']
+    if preview:
+        if audio!={'status':'not_applicable','method':'skipped_by_scope','checked_ranges':[],'evidence':[]}:
+            errors.append('story_preview audio must be skipped, not PASS or uncertain')
+    elif audio['status']=='not_applicable' or audio['method']=='skipped_by_scope':
+        errors.append('legacy audio scope cannot be silently skipped')
     if audio['method']=='unavailable' and audio['status']!='uncertain': errors.append('unavailable audio cannot pass/fail content check')
     if audio['status']=='PASS' and not covered(audio['checked_ranges'],duration): errors.append('audio PASS requires full coverage')
     if audio['method'] in ('listened','semantic_tool','decoded_silence') and audio['status']!='uncertain' and not audio['evidence']: errors.append('audio judgment requires evidence')
@@ -153,6 +172,8 @@ def pair_errors(inp,out,schema,static_pair):
         if sid not in shots: errors.append('static review references unknown shot'); continue
         p={'schema_version':'1.0','current':{k:v for k,v in shots[sid].items() if k not in ('preview_instruction','anchor_position','continuity_from_previous','continuity_basis')}}
         p.update({k:inp[k] for k in ('assets','story_context') if k in inp})
+        # A cached static report retains its original profile, including legacy reports.
+        if 'review_profile' in static: p['review_profile']=static['review_profile']
         if static['coverage']['continuity_basis'] in ('adjacent','both'):
             position=index[sid]
             for field,offset in [('previous',-1),('next',1)]:
@@ -189,7 +210,7 @@ def state_errors(inp,out,shots,index,inspected):
         if before and not same_shot and not new_scene and transition=='unknown' and not any(sid in u['shot_ids'] and 'shot_sequence_consistency' in u['layers'] for u in out['uncertainties']):
             errors.append('inheriting state across unknown narrative continuity requires uncertainty')
         for e in evidence(snap):
-            owner=next((s for s in shots if e['source_ref']==s+'_SPEC' or (shots[s].get('image') and e['source_ref']==shots[s]['image']['image_id'])),None)
+            owner=next((s for s in shots if e['source_ref'] in (s+'_SPEC',s+'_IMAGE_PROMPT',s+'_PREVIEW_INSTRUCTION') or (shots[s].get('image') and e['source_ref']==shots[s]['image']['image_id'])),None)
             if owner and index[owner]>index[sid]: errors.append('future source used in earlier state snapshot')
         invalid={x['fact_id'] for x in snap['state_invalidations']}
         changes={x['fact_id']:x for x in snap['state_changes']}
@@ -206,7 +227,8 @@ def state_errors(inp,out,shots,index,inspected):
                 errors.append('persistent fact identity/provenance must not be rewritten')
             if fid in old and f['value']!=old[fid]['value']:
                 change=changes.get(fid)
-                if not change or not any(e['source_type'] in ('shot_spec','story') for e in change['evidence']): errors.append('state change lacks authored authorization')
+                kinds=('shot_spec','story','image_prompt','preview_prompt') if inp.get('review_profile')=='story_preview' else ('shot_spec','story')
+                if not change or not any(e['source_type'] in kinds for e in change['evidence']): errors.append('state change lacks authored authorization')
             if new_scene and fid in old and old[fid]['scope']=='scene': errors.append('new scene retained unrelated environment fact')
             if f['last_confirmed_at_shot_id']==sid and f!=old.get(fid):
                 c=checks.get(fid)

@@ -2,6 +2,8 @@
 
 本页定义内部完整 JSON 记录与显式 JSON 导出的契约。默认用户成品是 [干净的 Markdown 报告](report-format.md)，不直接显示技术字段、状态事实表或原始 JSON；只改变呈现，不降低审查和证据要求。
 
+新审查按 [预览审查口径](story-preview.md) 显式设置输入与输出的 `review_profile: story_preview`；省略字段的历史记录维持 spec_fidelity 语义。
+
 ## 输入归一化
 
 静态模式以 [输入 Schema](../schemas/review-input.schema.json) 为机器契约；智能分镜使用下文独立契约。用户可以提供自然语言、文件、图片及视频，不必填写 JSON；只归一化实际给出的信息，不补写原设计。
@@ -13,7 +15,7 @@
 | previous / next | 可省略；可仅有 Spec，不能因此声称比较过实际相邻图 |
 | shot_spec | 原 object / string；缺失为 null，空字符串／空对象按缺失或不充分材料处理 |
 | image | 可为 null／省略；存在时需 image_id 和 ref；image_id 标识不可变内容 |
-| image_prompt | 可省略／null；原始文本用于定位转写问题，不能代替 Spec |
+| image_prompt | 可省略／null；保留对应图片提示词原文，是新静态审查的直接依据；可用 image_prompt_version 保存版本 |
 | clip_id / clip_version / image_number | ShotInput 可选分组元数据及全片图号；clip_id 为字符串，clip_version 为字符串或 null，image_number 为大于等于 1 的整数；不替代镜头身份、版本或场景连续关系 |
 | assets | 可选角色／场景／道具资产，保留 asset_id、entity_id、kind、version 及图片或文字来源 |
 | story_context | 可选原剧情依据，不能补写不存在的变化 |
@@ -24,10 +26,10 @@
 
 ## 缺失、冲突与覆盖范围
 
-- 当前 Spec 缺失、空、只有无法提取静态目标的文本：当前合规 uncertain，添加至少 medium uncertainty，说明缺什么约束。继续独立的、有依据的检查。
+- 对应图片提示词缺失、空或无法可靠绑定：当前合规 uncertain，添加至少 medium uncertainty，说明缺什么约束。继续独立的、有依据的检查。
 - 当前图片缺失或无法读取：current_image_inspected 为 false，当前合规 uncertain，总体至少 REVISE；不产生声称当前视觉已确认的 issues。
 - 当前图片可打开但局部模糊：inspected 为 true，只把受影响属性列为 uncertain，不等于整图未读取。
-- 原始 Prompt 缺失不阻止审图。资产缺失只影响必须靠资产才能确认的属性，不自动把其他全部检查变成 uncertain。
+- 缺少 Shot Spec 不阻止按对应提示词审图；Prompt 缺失只允许有限视觉与连续性检查，不能声称符合性完成。资产缺失只影响必须靠资产才能确认的属性，不自动把其他全部检查变成 uncertain。
 - 明确首镜／新场景且没有可比较后镜或实体状态：连续性 not_applicable。用户要求检查前后连续性却未提供足够材料，或连续关系未知：uncertain；不得以省略 previous 对象自动当首镜。
 - 图片是主要视觉证据，资产仅能证明资产形态，不能证明它已出现在前镜。文字输入可以证明设计要求，不能冒充图像观察。
 - 引用失效、版本冲突、明显空材料分别记录；未知事实不填成“已保持”。
@@ -44,15 +46,15 @@
 
 ## 与现有 Generator 连接
 
-输入来自 Generator 时读取 [Generator 兼容](generator-compatibility.md)。其当前输出包为 2.0，默认 Markdown 按 Clip 分组、每 Shot 一份 Image Prompt 及每 Clip 一份整体智能镜头 Prompt。静态审查只提取关键帧依据，视频审查另提取适用预览动态和参考图时刻。均按实际 Shot 及其版本审查，Clip 边界不自动重置场景状态，Prompt 不能反向替代原 Spec。
+输入来自 Generator 时读取 [Generator 兼容](generator-compatibility.md)。其当前输出包为 2.0，默认 Markdown 按 Clip 分组、每 Shot 一份 Image Prompt 及每 Clip 一份整体智能镜头 Prompt。静态审查逐张提取对应图片提示词，以关键帧说明补充背景，视频审查另提取适用预览动态和参考图时刻。均按实际 Shot 及其版本审查，Clip 边界不自动重置场景状态，影响判断的 Prompt 与 Spec 冲突列待确认。
 
 ## 智能分镜独立契约
 
-使用 [animatic-input.schema.json](../schemas/animatic-input.schema.json) 与 [animatic-output.schema.json](../schemas/animatic-output.schema.json)，`review_mode: animatic`；保留原静态 Schema 不变。具体必填字段与枚举以这些 Schema 为准，判断流程见 [智能分镜模块](animatic-review.md)。
+使用 [animatic-input.schema.json](../schemas/animatic-input.schema.json) 与 [animatic-output.schema.json](../schemas/animatic-output.schema.json)，`review_mode: animatic`；保留原静态字段兼容。具体必填字段与枚举以这些 Schema 为准，判断流程见 [智能分镜模块](animatic-review.md)。
 
-输入归一化保留 video 的 ID／引用／版本，按预期剧情排列 shots 及各自原 Spec、版本和对应分镜图。expected_sequence 省略时使用 shots 顺序；provided_segments 只作待验证映射。preview_instruction 保存原小幅动态／运镜说明，anchor_position 指定参考图的起始／代表／结束用途，不能覆盖原核心事实。可提供 assets、story_context、static_review_refs、persistent_visual_state；没有原静态审查记录不等于源图已通过。
+输入归一化保留 video 的 ID／引用／版本，按预期剧情排列 shots 及各自原 Spec、版本和对应分镜图。expected_sequence 省略时使用 shots 顺序；provided_segments 只作待验证映射。preview_prompt 保存整段预览原文，preview_instruction 保存逐镜原小幅动态／运镜说明，anchor_position 指定参考图的起始／代表／结束用途，不能覆盖原核心事实。可提供 assets、story_context、static_review_refs、persistent_visual_state；没有原静态审查记录不等于源图已通过。
 
-视频与图片相对路径相对输入 JSON 所在目录解析；替换内容后同步不可变资源 ID／版本和受影响证据。无法读取视频、缺少参考图或 Spec、切点匹配不可靠时记录实际缺项，继续可独立完成的检查；不制造虚假镜头映射或视觉／声音观察。
+视频与图片相对路径相对输入 JSON 所在目录解析；替换内容后同步不可变资源 ID／版本和受影响证据。无法读取视频、缺少参考图、关键动作依据缺失或切点匹配不可靠时记录实际缺项，继续可独立完成的检查；不制造虚假镜头映射或视觉／声音观察。
 
 输出包含顶层总体结果、animatic_review 的三层结论和视频总体结果、shot_reviews、issues、uncertainties、coverage 与 persistent_visual_state。可用 static_reviews 保存同时执行的完整静态报告。各 issue 保留 layers、repair_target、repair_action、关联镜头、时间范围、依据及修复建议；不确定项不混入 confirmed issues。
 
@@ -60,15 +62,17 @@
 
 state_snapshots 按已核验 Shot 的 entry／exit 保留实际 timestamp、state、visibility_checks、state_changes、state_invalidations；这些状态允许引用可追溯视频证据。最终持久状态承接最近已核验快照，不把未看过的终态、未来状态或错误帧写成正确事实。已有静态状态可用作可信设计基线，但代表图状态不能自动当视频出口。
 
-内部完整结构和状态传递显式保存；默认 Markdown 不展示这些字段，也不加入原视频链接／播放入口。契约校验和解码仅验证结构或读取能力，实际三层判断仍需查看对应媒体；声音能力不足应明确 uncertain。
+内部完整结构和状态传递显式保存；默认 Markdown 不展示这些字段，也不加入原视频链接／播放入口。契约校验和解码仅验证结构或读取能力，实际三层判断仍需查看对应媒体；声音按范围排除，coverage.audio 使用 not_applicable / skipped_by_scope 及空 checked_ranges、evidence，不产生待确认。
 
 ## 引用、关联与字段语义
 
-Evidence 的 source_type 为 image / shot_spec / asset / story / persistent_state；source_ref 必须可解析到输入或可追溯历史材料，locator 是实际字段路径或画面区域，observation 写出该来源支持的事实。source_version 在 Spec 版本已知时必须填写；未知时可为 null，不能假造版本。不用编造测量框。
+Evidence 的 source_type 为 image / image_prompt / preview_prompt / shot_spec / asset / story / persistent_state；source_ref 必须可解析到输入或可追溯历史材料，locator 是实际字段路径或画面区域，observation 写出该来源支持的事实。source_version 在 Spec 版本已知时必须填写；未知时可为 null，不能假造版本。不用编造测量框。
 
 source_version、source_ref、fact_id 等标识用于内部追溯和校验，不在默认成品中作为技术字段展示。默认成品把内部证据归纳成准确的问题句和可执行修改方案，不逐条展示证据；归纳不能扩大、弱化或曲解证据。
 
 - image：source_ref 使用输入的不可变 image_id，替换图片换 ID。
+- image_prompt：使用 `SHOT_ID_IMAGE_PROMPT`，已知 image_prompt_version 作为 source_version。
+- preview_prompt：整段使用 `preview_prompt`，逐镜使用 `SHOT_ID_PREVIEW_INSTRUCTION`。
 - shot_spec：统一使用 `SHOT_ID_SPEC` 配合 source_version；未知版本为 null，不能假造版本，不使用其他引用拼接格式。
 - asset：使用 asset_id，source_version 使用所选资产版本。
 - story：使用 `story_context`，locator 指向提供文本中的相关位置。

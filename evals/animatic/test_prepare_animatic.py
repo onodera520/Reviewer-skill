@@ -58,7 +58,7 @@ class RealMediaTests(unittest.TestCase):
         self.assertEqual(report['coverage']['reviewed_shot_ids'], [])
         self.assertIn(5, [x['frame_index'] for x in report['extracted_frames']])
         self.assertTrue(all(Path(x['ref']).is_file() for x in report['extracted_frames']))
-        self.assertEqual(report['audio']['content_status'], 'PASS')
+        self.assertEqual(report['audio']['status'], 'not_applicable')
 
     def test_vfr_uses_real_pts(self):
         report = self.prepare('vfr.mkv')
@@ -66,13 +66,16 @@ class RealMediaTests(unittest.TestCase):
 
     def test_digital_silence(self):
         report = self.prepare('silent.mkv')
-        self.assertEqual(report['audio']['streams'][0]['signal_status'], 'digital_silence')
-        self.assertEqual(report['audio']['content_status'], 'PASS')
+        self.assertEqual(report['audio'], {'status':'not_applicable','method':'skipped_by_scope','checked_ranges':[],'evidence':[]})
+        self.assertEqual(list((self.root/self._testMethodName).glob('*.wav')),[])
 
     def test_non_silent_not_misclassified(self):
-        report = self.prepare('tone.mkv')
-        self.assertEqual(report['audio']['content_status'], 'uncertain')
-        self.assertFalse(report['audio']['streams'][0]['content_inspected'])
+        with patch.object(media,'run',wraps=media.run) as calls:
+            report = self.prepare('tone.mkv')
+        self.assertEqual(report['audio']['status'], 'not_applicable')
+        commands=[list(map(str,c.args[0])) for c in calls.call_args_list]
+        self.assertTrue(all('-af' not in c and '-vn' not in c and not any(x.endswith('.wav') for x in c) for c in commands))
+        self.assertEqual(list((self.root/self._testMethodName).glob('*.wav')),[])
 
     def test_fade_not_auto_confirmed_as_hardcut(self):
         report = self.prepare('fade.mkv')

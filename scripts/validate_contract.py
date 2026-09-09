@@ -124,7 +124,7 @@ def validate_state(state):
         sources = {e["source_type"] for e in fact["evidence"]}
         if fact["basis"] in ("observed", "both") and "image" not in sources:
             errors.append(f"fact {fact['fact_id']} observed basis needs original image evidence, not circular state references")
-        if fact["basis"] in ("specified", "both") and not sources.intersection(("shot_spec", "story", "asset")):
+        if fact["basis"] in ("specified", "both") and not sources.intersection(("shot_spec", "story", "asset", "image_prompt")):
             errors.append(f"fact {fact['fact_id']} specified basis needs original authored evidence")
         if fact["basis"] == "specified" and fact["last_confirmed_at_shot_id"] is not None:
             errors.append(f"fact {fact['fact_id']} specified-only value cannot have last_confirmed image observation")
@@ -137,6 +137,9 @@ def validate_pair(inp, out):
     errors = validate_input(inp) + validate_schema(out, NAMES[1])
     if errors:
         return errors
+    preview = inp.get('review_profile', 'spec_fidelity') == 'story_preview'
+    if inp.get('review_profile', 'spec_fidelity') != out.get('review_profile', 'spec_fidelity'):
+        errors.append('review_profile mismatch; do not silently reinterpret historical reports')
     errors += validate_state(out["persistent_visual_state"])
     current = inp["current"]
     sid = current["shot_id"]
@@ -195,6 +198,8 @@ def validate_pair(inp, out):
             image_slots[image_id] = slot
         if shot["shot_spec"] is not None:
             sources[("shot_spec", shot["shot_id"] + "_SPEC")] = shot["spec_version"]
+        if preview and (shot.get('image_prompt') or '').strip():
+            sources[('image_prompt', shot['shot_id'] + '_IMAGE_PROMPT')] = shot.get('image_prompt_version')
     for slot in ("previous", "next"):
         if slot not in slots and coverage[f"{slot}_image_inspected"]:
             errors.append(f"coverage {slot}_image_inspected has no supplied shot")
@@ -210,7 +215,7 @@ def validate_pair(inp, out):
         if key not in sources and historic_key not in historical:
             errors.append(f"{path} unknown source_ref: {key}")
         quarantined_citation = path.startswith(("/uncertainties/", "/state_invalidations/")) and historic_key in historical
-        if key in sources and key[0] in ("shot_spec", "asset") and sources[key] is not None and ev.get("source_version") is None and not quarantined_citation:
+        if key in sources and key[0] in ("shot_spec", "asset", "image_prompt") and sources[key] is not None and ev.get("source_version") is None and not quarantined_citation:
             errors.append(f"{path} source_version required for known version: {key}")
         if key in sources and ev.get("source_version") is not None and sources[key] != ev["source_version"] and not quarantined_citation:
             errors.append(f"{path} source_version mismatch: {key}")
@@ -236,6 +241,9 @@ def validate_pair(inp, out):
         target_slot = issue["attribution"] if issue["attribution"] in slots else "current"
         target_image = slots[target_slot].get("image")
         ev_refs = {(e["source_type"], e["source_ref"]) for e in issue["evidence"]}
+        if preview and 'current_shot_compliance' in issue_areas:
+            if ('image_prompt', slots[target_slot]['shot_id'] + '_IMAGE_PROMPT') not in ev_refs:
+                errors.append('prompt compliance issue needs corresponding image_prompt evidence')
         if not target_image or not coverage[f"{target_slot}_image_inspected"] or ("image", target_image["image_id"]) not in ev_refs:
             errors.append(f"issue {issue['issue_id']} requires actual inspected target image evidence")
         if issue["review_area"] in issue.get("related_review_areas", []):
@@ -287,11 +295,12 @@ def validate_pair(inp, out):
                 errors.append("cross_shot_continuity not_applicable despite applicable or unresolved evidence")
         elif out[area] != expected:
             errors.append(f"{area} must be {expected}")
-    missing_current = current["shot_spec"] is None or not coverage["current_image_inspected"]
+    missing_basis = not (current.get('image_prompt') or '').strip() if preview else current['shot_spec'] is None
+    missing_current = missing_basis or not coverage["current_image_inspected"]
     if missing_current and (out["current_shot_compliance"] not in ("uncertain", "FAIL") or
                             not any(u["review_area"] == "current_shot_compliance" and LEVEL[u["potential_severity"]] >= 1
                                     for u in out["uncertainties"])):
-        errors.append("current_shot_compliance needs material uncertainty for missing Spec/uninspected current image")
+        errors.append("current_shot_compliance needs material uncertainty for missing review basis/uninspected current image")
     result = expected_verdict(out)
     if out["overall_result"] != result:
         errors.append(f"overall_result must be {result}")
@@ -300,6 +309,7 @@ def validate_pair(inp, out):
     new_scene = inp.get("continuity_context", {}).get("previous_to_current") == "new_scene"
     future = inp.get("next", {})
     future_refs = {x for x in (future.get("shot_id", "") + "_SPEC" if future else None,
+                              future.get('shot_id', '') + '_IMAGE_PROMPT' if future else None,
                               future.get("image", {}).get("image_id") if future.get("image") else None) if x}
     for fid, f in new.items():
         failed = any(i["attribution"] == "current" and fid in i.get("fact_ids", []) for i in out["issues"])
@@ -322,7 +332,7 @@ def validate_pair(inp, out):
             if any(f[k] != before[k] for k in ("entity_id", "property", "scope", "established_at_shot_id")):
                 errors.append(f"fact_id {fid} cannot change identity/property/scope/provenance")
             changed = any(f[k] != before[k] for k in ("value", "world_anchor"))
-            authorized = any(e["source_type"] in ("shot_spec", "story") and
+            authorized = any(e["source_type"] in (("shot_spec", "story", "image_prompt") if preview else ("shot_spec", "story")) and
                              e["source_ref"] not in future_refs and e not in before["evidence"] for e in f["evidence"])
             if changed and not authorized:
                 errors.append(f"fact {fid} change lacks new authored change evidence")

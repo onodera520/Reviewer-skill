@@ -176,6 +176,16 @@
     },
     "persistent_visual_state": {
       "$ref": "#/$defs/state"
+    },
+    "review_profile": {
+      "enum": [
+        "story_preview",
+        "spec_fidelity"
+      ]
+    },
+    "preview_prompt": {
+      "type": "string",
+      "minLength": 1
     }
   },
   "required": [
@@ -197,7 +207,9 @@
             "story",
             "persistent_state",
             "video_frame",
-            "audio_segment"
+            "audio_segment",
+            "image_prompt",
+            "preview_prompt"
           ]
         },
         "source_ref": {
@@ -548,6 +560,13 @@
               "type": "null"
             }
           ]
+        },
+        "image_prompt_version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
         }
       },
       "required": [
@@ -684,6 +703,13 @@
         },
         "continuity_basis": {
           "type": "string",
+          "minLength": 1
+        },
+        "image_prompt_version": {
+          "type": [
+            "string",
+            "null"
+          ],
           "minLength": 1
         }
       },
